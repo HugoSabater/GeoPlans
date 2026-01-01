@@ -27,7 +27,7 @@ $planModel = new Plan();
 
 // URL de prueba (Cambiar por una real o un archivo local de prueba)
 // Para propósitos de este ejercicio, supongamos que el sitio tiene esta estructura.
-$targetUrl = "https://www.ejemplo-de-eventos.com/conciertos";
+$targetUrl = "https://www.teatromadrid.com/cartelera";
 
 $results = $scraper->scrape($targetUrl);
 
