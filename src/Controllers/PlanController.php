@@ -29,7 +29,7 @@ class PlanController extends Controller
     {
         // 1. Configuración de Paginación
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-        $limit = 5; // Planes por página
+        $limit = 9; // Planes por página (3x3 grid)
         $offset = ($page - 1) * $limit;
 
         // 2. Capturar filtros

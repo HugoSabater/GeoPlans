@@ -29,7 +29,7 @@ $planModel = new Plan();
 // Para propósitos de este ejercicio, supongamos que el sitio tiene esta estructura.
 $targetUrl = "https://www.teatromadrid.com/cartelera";
 
-$results = $scraper->scrape($targetUrl);
+$results = $scraper->scrape($targetUrl, 5);
 
 $inserted = 0;
 foreach ($results as $item) {

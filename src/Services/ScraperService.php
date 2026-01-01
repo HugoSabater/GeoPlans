@@ -28,94 +28,130 @@ class ScraperService
     }
 
     /**
-     * Scrapea una URL y devuelve un array de planes.
+     * Scrapea una URL recorriendo múltiples páginas.
      */
-    public function scrape(string $url): array
+    public function scrape(string $baseUrl, int $maxPages = 5): array
     {
-        $this->logger->info("Iniciando scraping de la URL: {$url}");
-        $plans = [];
+        $this->logger->info("Iniciando scraping MULTI-PÁGINA (Máx: {$maxPages}) en: {$baseUrl}");
+        $allPlans = [];
 
-        try {
-            $response = $this->client->get($url);
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode !== 200) {
-                $this->logger->critical("Error crítico: Status Code {$statusCode} al acceder a {$url}");
-                return [];
+        for ($i = 1; $i <= $maxPages; $i++) {
+            // Construcción de URL paginada
+            $url = $baseUrl;
+            if ($i > 1) {
+                // Lógica específica para TeatroMadrid o genérica
+                if (strpos($baseUrl, 'teatromadrid') !== false) {
+                    $url = rtrim($baseUrl, '/') . "/pagina/$i";
+                } else {
+                    // Paginación genérica estándar
+                    $separator = (strpos($baseUrl, '?') === false) ? '?' : '&';
+                    $url = "{$baseUrl}{$separator}page={$i}";
+                }
             }
 
-            $html = (string) $response->getBody();
-            $crawler = new Crawler($html);
+            $this->logger->info("Procesando Página {$i}: {$url}");
 
-            // Selectores para guiadelocio.com/madrid/conciertos
-            // Estructura habitual: li.col-md-12 or .list-item
-            $nodes = $crawler->filter('li.col-md-12, .list-articulos li, .l-list li');
+            try {
+                $response = $this->client->get($url);
+                $statusCode = $response->getStatusCode();
 
-            $count = $nodes->count();
-            $this->logger->info("Encontrados {$count} eventos en GuiaDelOcio");
-
-            if ($count === 0) {
-                // Fallback genérico a cualquier cosa que parezca una tarjeta
-                $nodes = $crawler->filter('.card, article, .item, .news-item');
-                $count = $nodes->count();
-                $this->logger->info("Intento fallback genérico: {$count} elementos encontrados");
-            }
-
-            if ($count === 0) {
-                $this->logger->warning("No se encontraron elementos. Guardando debug.");
-                file_put_contents(__DIR__ . '/../../logs/debug_scrape.html', $html);
-            }
-
-            $nodes->slice(0, 15)->each(function (Crawler $node) use (&$plans, $url) {
-                // Título
-                $titleNode = $node->filter('h2, h3, .title');
-                $title = $titleNode->count() ? trim($titleNode->text()) : '';
-
-                // Si no tiene título, lo saltamos
-                if (!$title)
-                    return;
-
-                // Link
-                $linkNode = $node->filter('h2 a, h3 a, .title a');
-                $link = $linkNode->count() ? $linkNode->attr('href') : $url;
-                if ($link && strpos($link, 'http') === false) {
-                    $link = 'https://www.guiadelocio.com' . $link;
+                if ($statusCode !== 200) {
+                    $this->logger->error("Error: Status {$statusCode} en página {$i}");
+                    continue; // Intentar siguiente página
                 }
 
-                // Descripción
-                $descNode = $node->filter('.text, p, .description');
-                $description = $descNode->count() ? trim($descNode->text()) : '';
+                $html = (string) $response->getBody();
+                $crawler = new Crawler($html);
 
-                // Ubicación (Recinto)
-                $locNode = $node->filter('.txt-geo, .location, .place');
-                $location = $locNode->count() ? trim($locNode->text()) : 'Madrid';
+                // Selectores (Mismos que antes)
+                $nodes = $crawler->filter('li.col-md-12, .list-articulos li, .l-list li, article.node-event, .views-row');
 
-                // Fecha
-                $dateNode = $node->filter('.fecha, .date');
-                // A veces la fecha está en el título o descripción, usamos NOW si falla
-                $date = date('Y-m-d H:i:s');
+                if ($nodes->count() === 0) {
+                    // Fallback
+                    $nodes = $crawler->filter('.card, article, .item, .news-item');
+                }
 
-                // Categoría Dinámica
-                $categoryId = $this->detectCategory($title);
+                $this->logger->info("Nodos encontrados en P{$i}: " . $nodes->count());
 
-                $plans[] = [
-                    'title' => $title,
-                    'description' => substr($description, 0, 255), // Truncar por seguridad DB
-                    'location' => $location,
-                    'price' => 0.0,
-                    'date' => $date,
-                    'url_source' => $link,
-                    'category_id' => $categoryId
-                ];
-            });
+                $pageCount = 0;
+                $nodes->each(function (Crawler $node) use (&$allPlans, &$pageCount, $url) {
+                    // Título extendido
+                    $titleNode = $node->filter('h2, h3, h4, .title, .card-title, .field-title a');
+                    $title = $titleNode->count() ? trim($titleNode->text()) : '';
 
-            $this->logger->info("Scraping finalizado. Insertados: " . count($plans));
+                    if (!$title) {
+                        // Intento de fallback: tomar el texto del primer enlace
+                        $linkTry = $node->filter('a')->first();
+                        if ($linkTry->count()) {
+                            $title = trim($linkTry->text());
+                        }
+                    }
 
-        } catch (\Throwable $e) {
-            $this->logger->error("Error durante el scraping: " . $e->getMessage());
+                    if (!$title) {
+                        $this->logger->info("Skip: Sin título en nodo.");
+                        if ($pageCount === 0) {
+                            $this->logger->info("HTML Nodo Debug: " . substr($node->html(), 0, 200));
+                        }
+                        return;
+                    }
+                    if (strlen($title) < 3) {
+                        $this->logger->info("Skip: Título corto: $title");
+                        return;
+                    }
+                    if (stripos($title, 'promo') !== false) {
+                        return;
+                    }
+
+                    $linkNode = $node->filter('a');
+                    $link = $linkNode->count() ? $linkNode->attr('href') : $url;
+                    if ($link && strpos($link, 'http') === false) {
+                        // Detectar dominio base para enlaces relativos
+                        $host = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST);
+                        $link = $host . $link;
+                    }
+
+                    $descNode = $node->filter('.text, p, .description');
+                    $description = $descNode->count() ? trim($descNode->text()) : '';
+
+                    $locNode = $node->filter('.txt-geo, .location, .place');
+                    $location = $locNode->count() ? trim($locNode->text()) : 'Madrid';
+
+                    // Categoría Dinámica
+                    $categoryId = $this->detectCategory($title);
+
+                    // Imagen Real o Fallback
+                    $imageUrl = $this->extractImage($node, $url);
+                    if (!$imageUrl) {
+                        $imageUrl = $this->getFallbackImage($categoryId);
+                    }
+
+                    $allPlans[] = [
+                        'title' => $title,
+                        'description' => substr($description, 0, 255),
+                        'location' => $location,
+                        'price' => 0.0,
+                        'date' => date('Y-m-d H:i:s'),
+                        'url_source' => $link,
+                        'category_id' => $categoryId,
+                        'image_url' => $imageUrl
+                    ];
+                    $pageCount++;
+                });
+
+                $this->logger->info("Página {$i}: {$pageCount} planes extraídos.");
+
+                // Ser educados con el servidor
+                if ($i < $maxPages) {
+                    sleep(1);
+                }
+
+            } catch (\Throwable $e) {
+                $this->logger->error("Excepción en página {$i}: " . $e->getMessage());
+            }
         }
 
-        return $plans;
+        $this->logger->info("TOTAL SCRAPING FINALIZADO. Planes totales: " . count($allPlans));
+        return $allPlans;
     }
 
     /**
@@ -155,9 +191,64 @@ class ScraperService
             return 4; // Gastronomía
         }
         if (preg_match('/(exposición|museo|arte|pintura|foto|aire libre|parque)/i', $titleLower)) {
-            return 2; // Arte/Museo -> ID 2 (Usando 2 'Teatro' como proxy de Cultura, o 1 si se prefiere)
+            return 2; // Arte/Museo -> ID 2 (Usando 2 'Teatro' como proxy de Cultura)
         }
 
-        return 1; // Default safe: Música (1) para evitar error FK si el 5 no existe
+        return 1; // Default safe: Música (1)
+    }
+
+    /**
+     * Extrae la URL de la imagen del nodo.
+     */
+    private function extractImage(Crawler $node, string $baseUrl): ?string
+    {
+        // Selectores comunes de imagen en tarjetas
+        $imgNode = $node->filter('img')->first();
+
+        if ($imgNode->count() === 0) {
+            // Intentar buscar en un div con style background-image (común en webs modernas)
+            $styleNode = $node->filter('.image, .thumb, .field-image');
+            if ($styleNode->count() > 0) {
+                // Lógica compleja omitida por simplicidad, nos centramos en <img>
+            }
+            return null;
+        }
+
+        // Prioridad: data-src (lazy load) > src
+        $src = $imgNode->attr('data-src') ?: $imgNode->attr('data-original') ?: $imgNode->attr('src');
+
+        // Validar y normalizar
+        if (!$src || strpos($src, 'base64') !== false) {
+            return null;
+        }
+
+        // URLs relativas
+        if (strpos($src, 'http') === false) {
+            $scheme = parse_url($baseUrl, PHP_URL_SCHEME) ?? 'https';
+            $host = parse_url($baseUrl, PHP_URL_HOST);
+            $src = $scheme . '://' . $host . '/' . ltrim($src, '/');
+        }
+
+        return $src;
+    }
+
+    /**
+     * Devuelve una imagen por defecto basada en la categoría.
+     * Usamos URLs de Unsplash source estables por temática.
+     */
+    private function getFallbackImage(int $categoryId): string
+    {
+        switch ($categoryId) {
+            case 1: // Música
+                return 'https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&w=800&q=80';
+            case 2: // Teatro/Arte
+                return 'https://images.unsplash.com/photo-1503095392237-fa26b21ba375?auto=format&fit=crop&w=800&q=80';
+            case 3: // Cine
+                return 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80';
+            case 4: // Gastronomía
+                return 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80';
+            default: // Aire Libre/Varios
+                return 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80';
+        }
     }
 }

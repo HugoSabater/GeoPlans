@@ -138,6 +138,17 @@ class Plan
     }
 
     /**
+     * Verifica si existe un plan por su URL.
+     */
+    public function exists(string $url): bool
+    {
+        $sql = "SELECT COUNT(*) FROM plans WHERE url_source = :url";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':url' => $url]);
+        return ((int) $stmt->fetchColumn()) > 0;
+    }
+
+    /**
      * Persiste un nuevo plan.
      *
      * @param array $data
@@ -145,8 +156,8 @@ class Plan
      */
     public function save(array $data): bool
     {
-        $sql = "INSERT INTO plans (title, description, location, price, date, url_source, category_id) 
-                VALUES (:title, :description, :location, :price, :date, :url_source, :category_id)";
+        $sql = "INSERT INTO plans (title, description, location, price, date, url_source, category_id, image_url) 
+                VALUES (:title, :description, :location, :price, :date, :url_source, :category_id, :image_url)";
 
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -156,7 +167,27 @@ class Plan
             ':price' => $data['price'],
             ':date' => $data['date'],
             ':url_source' => $data['url_source'],
-            ':category_id' => $data['category_id']
+            ':category_id' => $data['category_id'],
+            ':image_url' => $data['image_url'] ?? null
         ]);
+    }
+    /**
+     * Elimina planes cuya fecha sea anterior a AHORA.
+     */
+    public function deleteExpired(): int
+    {
+        $sql = "DELETE FROM plans WHERE date < NOW()";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Vacia la tabla de planes (Reset completo).
+     */
+    public function truncate(): void
+    {
+        $sql = "TRUNCATE TABLE plans";
+        $this->db->exec($sql);
     }
 }

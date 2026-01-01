@@ -33,8 +33,13 @@ Search.appendIndex(
         },                {
             "fqsen": "\\GeoPlans\\Controllers\\PlanController\u003A\u003Aindex\u0028\u0029",
             "name": "index",
-            "summary": "Acci\u00F3n\u0020principal\u003A\u0020Listado\u0020y\u0020filtrado.",
+            "summary": "Acci\u00F3n\u0020principal\u003A\u0020Listado\u0020y\u0020filtrado\u0020con\u0020paginaci\u00F3n.",
             "url": "classes/GeoPlans-Controllers-PlanController.html#method_index"
+        },                {
+            "fqsen": "\\GeoPlans\\Controllers\\PlanController\u003A\u003Adelete\u0028\u0029",
+            "name": "delete",
+            "summary": "Elimina\u0020un\u0020plan.",
+            "url": "classes/GeoPlans-Controllers-PlanController.html#method_delete"
         },                {
             "fqsen": "\\GeoPlans\\Controllers\\PlanController\u003A\u003A\u0024planModel",
             "name": "planModel",
@@ -108,13 +113,28 @@ Search.appendIndex(
         },                {
             "fqsen": "\\GeoPlans\\Models\\Plan\u003A\u003AgetAll\u0028\u0029",
             "name": "getAll",
-            "summary": "Obtiene\u0020todos\u0020los\u0020planes\u0020con\u0020su\u0020nombre\u0020de\u0020categor\u00EDa.",
+            "summary": "Obtiene\u0020planes\u0020paginados.",
             "url": "classes/GeoPlans-Models-Plan.html#method_getAll"
+        },                {
+            "fqsen": "\\GeoPlans\\Models\\Plan\u003A\u003AcountAll\u0028\u0029",
+            "name": "countAll",
+            "summary": "Cuenta\u0020el\u0020total\u0020de\u0020planes.",
+            "url": "classes/GeoPlans-Models-Plan.html#method_countAll"
         },                {
             "fqsen": "\\GeoPlans\\Models\\Plan\u003A\u003AgetByFilter\u0028\u0029",
             "name": "getByFilter",
             "summary": "Filtra\u0020planes\u0020por\u0020categor\u00EDa\u0020y\/o\u0020precio\u0020m\u00E1ximo.",
             "url": "classes/GeoPlans-Models-Plan.html#method_getByFilter"
+        },                {
+            "fqsen": "\\GeoPlans\\Models\\Plan\u003A\u003AcountByFilter\u0028\u0029",
+            "name": "countByFilter",
+            "summary": "Cuenta\u0020planes\u0020filtrados.",
+            "url": "classes/GeoPlans-Models-Plan.html#method_countByFilter"
+        },                {
+            "fqsen": "\\GeoPlans\\Models\\Plan\u003A\u003Adelete\u0028\u0029",
+            "name": "delete",
+            "summary": "Elimina\u0020un\u0020plan\u0020por\u0020ID.",
+            "url": "classes/GeoPlans-Models-Plan.html#method_delete"
         },                {
             "fqsen": "\\GeoPlans\\Models\\Plan\u003A\u003Asave\u0028\u0029",
             "name": "save",
@@ -145,6 +165,11 @@ Search.appendIndex(
             "name": "cleanPrice",
             "summary": "Limpia\u0020el\u0020string\u0020del\u0020precio\u0020para\u0020convertirlo\u0020en\u0020float.",
             "url": "classes/GeoPlans-Services-ScraperService.html#method_cleanPrice"
+        },                {
+            "fqsen": "\\GeoPlans\\Services\\ScraperService\u003A\u003AdetectCategory\u0028\u0029",
+            "name": "detectCategory",
+            "summary": "Detecta\u0020la\u0020categor\u00EDa\u0020basada\u0020en\u0020palabras\u0020clave\u0020del\u0020t\u00EDtulo.",
+            "url": "classes/GeoPlans-Services-ScraperService.html#method_detectCategory"
         },                {
             "fqsen": "\\GeoPlans\\Services\\ScraperService\u003A\u003A\u0024client",
             "name": "client",
