@@ -19,7 +19,7 @@ Sigue estos pasos para poner en marcha el proyecto en tu máquina local:
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/HugoSabater/GeoPlans
 cd GeoPlans
 ```
 
