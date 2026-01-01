@@ -27,6 +27,7 @@ $router = new Router();
 
 // Ruta Web
 $router->get('/', [\GeoPlans\Controllers\PlanController::class, 'index']);
+$router->get('/plan/delete', [\GeoPlans\Controllers\PlanController::class, 'delete']);
 
 // Ruta API
 $router->get('/api/plans', [\GeoPlans\Controllers\ApiController::class, 'getPlans']);

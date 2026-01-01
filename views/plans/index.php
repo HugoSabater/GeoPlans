@@ -30,7 +30,8 @@
                     <div class="col-md-4">
                         <label class="form-label">Precio Máximo (€)</label>
                         <input type="number" step="0.01" name="price" class="form-control"
-                            value="<?= htmlspecialchars((string) ($filters['max_price'] ?? '')) ?>" placeholder="Ej: 50">
+                            value="<?= htmlspecialchars((string) ($filters['max_price'] ?? '')) ?>"
+                            placeholder="Ej: 50">
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">Aplicar Filtros</button>
@@ -54,6 +55,7 @@
                                         <th>Precio</th>
                                         <th>Fecha</th>
                                         <th>Categoría</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -71,6 +73,12 @@
                                                 <td><span
                                                         class="badge bg-info text-dark"><?= htmlspecialchars($plan['category_name']) ?></span>
                                                 </td>
+                                                <td>
+                                                    <a href="/plan/delete?id=<?= $plan['id'] ?>" class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('¿Estás seguro de borrar este plan?');">
+                                                        🗑️
+                                                    </a>
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -78,19 +86,49 @@
                             </table>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Estadísticas</h5>
-                        <!-- Canvas para Chart.js -->
-                        <canvas id="plansChart" width="400" height="400"></canvas>
-                    </div>
+                    <!-- Paginación -->
+                    <?php if (isset($pagination) && $pagination['total_pages'] > 1): ?>
+                        <nav aria-label="Navegación de planes" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <?php
+                                // Preservar filtros
+                                $params = $_GET;
+                                unset($params['page']);
+                                $qs = http_build_query($params);
+                                $prefix = $qs ? "?{$qs}&" : "?";
+                                ?>
+
+                                <li class="page-item <?= $pagination['has_prev'] ? '' : 'disabled' ?>">
+                                    <a class="page-link" href="<?= $prefix ?>page=<?= $pagination['prev'] ?>">Anterior</a>
+                                </li>
+
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Página <?= $pagination['current'] ?> de <?= $pagination['total_pages'] ?>
+                                    </span>
+                                </li>
+
+                                <li class="page-item <?= $pagination['has_next'] ? '' : 'disabled' ?>">
+                                    <a class="page-link" href="<?= $prefix ?>page=<?= $pagination['next'] ?>">Siguiente</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Estadísticas</h5>
+                    <!-- Canvas para Chart.js -->
+                    <canvas id="plansChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

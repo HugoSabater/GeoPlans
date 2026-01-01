@@ -24,14 +24,36 @@ class Plan
      *
      * @return array
      */
-    public function getAll(): array
+    /**
+     * Obtiene planes paginados.
+     *
+     * @param int $limit
+     * @param int $offset
+     * @return array
+     */
+    public function getAll(int $limit = 10, int $offset = 0): array
     {
         $sql = "SELECT p.*, c.name as category_name 
                 FROM plans p 
                 INNER JOIN categories c ON p.category_id = c.id 
-                ORDER BY p.date ASC";
+                ORDER BY p.date ASC
+                LIMIT :limit OFFSET :offset";
 
-        return $this->db->query($sql)->fetchAll();
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Cuenta el total de planes.
+     */
+    public function countAll(): int
+    {
+        $sql = "SELECT COUNT(*) FROM plans";
+        return (int) $this->db->query($sql)->fetchColumn();
     }
 
     /**
@@ -61,10 +83,58 @@ class Plan
 
         $sql .= " ORDER BY p.date ASC";
 
+        // Paginación para filtros también
+        if (isset($filters['limit']) && isset($filters['offset'])) {
+            $sql .= " LIMIT :limit OFFSET :offset";
+            $params[':limit'] = (int) $filters['limit'];
+            $params[':offset'] = (int) $filters['offset'];
+        }
+
+        $stmt = $this->db->prepare($sql);
+
+        // Bind manual para enteros (importante para LIMIT/OFFSET)
+        foreach ($params as $key => $value) {
+            $type = is_int($value) ? PDO::PARAM_INT : (is_float($value) ? PDO::PARAM_STR : PDO::PARAM_STR);
+            $stmt->bindValue($key, $value, $type);
+        }
+
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Cuenta planes filtrados.
+     */
+    public function countByFilter(array $filters): int
+    {
+        $sql = "SELECT COUNT(*) FROM plans p WHERE 1=1";
+        $params = [];
+
+        if (!empty($filters['category_id'])) {
+            $sql .= " AND p.category_id = :category_id";
+            $params[':category_id'] = (int) $filters['category_id'];
+        }
+
+        if (!empty($filters['max_price'])) {
+            $sql .= " AND p.price <= :max_price";
+            $params[':max_price'] = (float) $filters['max_price'];
+        }
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        return $stmt->fetchAll();
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Elimina un plan por ID.
+     */
+    public function delete(int $id): bool
+    {
+        $sql = "DELETE FROM plans WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':id' => $id]);
     }
 
     /**
