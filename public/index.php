@@ -1,6 +1,9 @@
 <?php
-
 declare(strict_types=1);
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -26,14 +29,16 @@ try {
 $router = new Router();
 
 // Ruta Web
-$router->get('/', [\GeoPlans\Controllers\PlanController::class, 'index']);
-$router->get('/plan/delete', [\GeoPlans\Controllers\PlanController::class, 'delete']);
-
-// Ruta API
-$router->get('/api/plans', [\GeoPlans\Controllers\ApiController::class, 'getPlans']);
-
-// Despachar la petición
 try {
+    $router->get('/', [\GeoPlans\Controllers\PlanController::class, 'index']);
+    $router->get('/plan/delete', [\GeoPlans\Controllers\PlanController::class, 'delete']);
+
+    // Ruta API
+    $router->get('/api/plans', [\GeoPlans\Controllers\ApiController::class, 'getPlans']);
+
+    // Despachar la petición
+    // Ya tenemos el $router configurado arriba con las rutas.
+    // NO crear uno nuevo aquí porque estaría vacío.
     $router->dispatch();
 } catch (\Throwable $e) {
     // Loguear el error con Monolog

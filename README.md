@@ -1,88 +1,113 @@
-# GeoPlans: Buscador de Planes Geolocalizados
+# 🌍 GeoPlans | Cultural Aggregator Engine
 
-GeoPlans es una aplicación web MVC nativa desarrollada en PHP 8.1+ que permite la agregación, gestión y visualización de planes de ocio (conciertos, teatro, cine) mediante técnicas de scraping.
+![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![Architecture](https://img.shields.io/badge/Architecture-Custom%20MVC-orange?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-El proyecto implementa una arquitectura limpia, sin frameworks full-stack, priorizando el uso de estándares PSR, inyección de dependencias y patrones de diseño.
+**GeoPlans** es una plataforma de agregación de eventos culturales de alto rendimiento diseñada bajo una arquitectura **MVC Nativa (Sin Frameworks)**. El sistema implementa un motor de *Web Scraping* resiliente capaz de consolidar datos heterogéneos (TeatroMadrid, etc.), normalizarlos y servirlos a través de una Interfaz Reactiva y una API RESTful JSON.
 
-## Requisitos del Servidor
+---
 
-Para desplegar este proyecto necesitas un entorno con:
+## 🚀 Características Técnicas
 
-- **PHP 8.1** o superior.
-- **MySQL** o MariaDB.
-- **Composer** (Gestor de dependencias).
-- Extensión `pdo_mysql` habilitada en PHP.
+### 🏗️ Arquitectura & Backend
+- **Core Nativo PHP 8.2:** Implementación estricta (`strict_types=1`) sin dependencia de frameworks como Laravel o Symfony, demostrando dominio del lenguaje.
+- **Patrón MVC Estricto:** Separación total de responsabilidades (Front Controller, Router, Controllers, Models, Views).
+- **Inyección de Dependencias:** Uso de `vlucas/phpdotenv` para gestión de entornos y `monolog/monolog` para observabilidad.
+- **Base de Datos:** MySQL con capa de abstracción PDO y sentencias preparadas para prevenir inyección SQL.
 
-## Instalación y Despliegue
+### 🕷️ Motor de Adquisición (Scraping)
+- **Extracción Inteligente:** Uso de `GuzzleHttp` y `Symfony DOMCrawler` para parsing HTML avanzado.
+- **Lógica Difusa:** Categorización automática de eventos basada en análisis semántico del título (NLP básico).
+- **Mantenimiento Autónomo:** Script `maintenance.php` diseñado para ejecución CRON, encargado de la limpieza de eventos caducados y descubrimiento de nuevos items (Paginación automática).
 
-Sigue estos pasos para poner en marcha el proyecto en tu máquina local:
+### 🎨 Frontend & UX
+- **Diseño Atómico:** Componentes visuales modulares con Bootstrap 5.
+- **Feedback Visual:** Sistema de etiquetas (Badges) dinámicos basados en la categoría del evento.
+- **Performance:** Carga diferida de imágenes y paginación optimizada (Grid 3x3).
+
+---
+
+## 🛠️ Requisitos del Sistema
+
+- **PHP:** 8.1 o superior (Probado en 8.2).
+- **Extensiones:** `pdo_mysql`, `mbstring`, `curl`, `dom`.
+- **Base de Datos:** MySQL 5.7 / 8.0 o MariaDB.
+- **Gestor de Dependencias:** Composer.
+
+---
+
+## 📦 Instalación y Despliegue
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/HugoSabater/GeoPlans
+git clone https://github.com/HugoSabater/GeoPlans.git
 cd GeoPlans
 ```
 
 ### 2. Instalar dependencias
-Descarga las librerías necesarias (Guzzle, Monolog, Symfony Components) ejecutando:
 ```bash
-composer install
+composer install --no-dev --optimize-autoloader
 ```
-> **Nota:** Si estás en un entorno de desarrollo local con PHP 7.4 (ej. XAMPP antiguo), puedes usar `composer install --ignore-platform-req=php`, aunque se recomienda actualizar a PHP 8.1.
 
-### 3. Configuración del entorno
-Copia el archivo de ejemplo y configura tus credenciales de base de datos:
+### 3. Configurar Entorno
 ```bash
 cp .env.example .env
+# Editar .env con tus credenciales de base de datos
 ```
-Edita el archivo `.env` y ajusta `DB_USER`, `DB_PASS` y `DB_NAME` según tu configuración local.
 
-### 4. Base de Datos
-Importa el esquema y los datos iniciales en tu gestor de base de datos (phpMyAdmin, Workbench, CLI):
+### 4. Base de Datos (Seed Inicial)
+Importar el archivo `database.sql` incluido en la raíz. Este archivo contiene la estructura DDL y un dataset inicial de 50 eventos reales.
+
+### 5. Arrancar Servidor (Modo Desarrollo)
 ```bash
-mysql -u root -p geoplans_db < database.sql
+php -S localhost:8000 -t public
 ```
-*Asegúrate de crear la base de datos `geoplans_db` antes de importar si no existe.*
-
-### 5. Configuración del Servidor Web
-Configura tu servidor (Apache/Nginx) para que el `DocumentRoot` apunte a la carpeta `/public`.
-- **Apache:** Asegúrate de que `mod_rewrite` esté activado para que el enrutamiento funcione correctamente.
-- **PHP Built-in Server (Rápido para pruebas):**
-  ```bash
-  php -S localhost:8000 -t public
-  ```
 
 ---
 
-## Instrucciones de Uso
+## 🤖 Automatización y Scripts
+El sistema incluye herramientas CLI para mantenimiento:
 
-### Ejecutar el Scraper
-Para poblar la base de datos con nuevos planes extraídos de fuentes externas, ejecuta el script desde la terminal:
-```bash
-php scripts/run_scrape.php
+| Comando | Descripción |
+|---------|-------------|
+| `php scripts/maintenance.php` | **Modo Producción**: Elimina eventos pasados y scrapea nuevas páginas. |
+| `php scripts/refresh_all.php` | **Modo Reset**: Trunca la base de datos y regenera todo desde cero. |
+
+---
+
+## 🔌 Documentación API
+El sistema expone un endpoint público para consumo de terceros:
+
+### `GET /api/plans`
+**Response**: JSON con la lista de eventos activos.
+
+**Estructura:**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "title": "El Rey León",
+      "category": "Musicales",
+      "date": "2026-02-20",
+      "image_url": "https://..."
+    }
+  ]
+}
 ```
+Para documentación técnica detallada del código, consultar `/docs/index.html`.
 
-### Acceder a la Web y API
-- **Web**: Visita `http://localhost:8000` (o tu vhost) para ver el buscador y las estadísticas gráficas.
-- **API REST**: Accede a `http://localhost:8000/api/plans` para obtener el listado de eventos en formato JSON.
+---
 
-### Ejecutar Tests Unitarios
-Para verificar la integridad del código, ejecuta la suite de pruebas con PHPUnit:
+## 🧪 Testing
+Ejecutar la suite de pruebas unitarias:
 ```bash
 ./vendor/bin/phpunit tests
 ```
 
-### Documentación del Código
-La documentación técnica de clases y métodos está disponible en HTML estático.
-Abre el archivo `/docs/index.html` en tu navegador para consultarla.
-
 ---
 
-## Tecnologías y Librerías
-
-- **Core**: PHP 8.1 Nativo, PDO, MVC Pattern.
-- **Frontend**: HTML5, Bootstrap 5, Chart.js.
-- **Scraping**: GuzzleHTTP, Symfony DOM Crawler y CSS Selector.
-- **Logging**: Monolog.
-- **Testing**: PHPUnit.
-- **Docs**: phpDocumentor.
+**Autor**: Hugo Sabater  
+**Licencia**: MIT

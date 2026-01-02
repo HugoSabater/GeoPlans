@@ -43,12 +43,14 @@ try {
     // ----------------------------------------------------
     // PASO 2: ADQUISICIÓN (Scraping)
     // ----------------------------------------------------
-    // Target: TeatroMadrid
-    $url = 'https://www.teatromadrid.com/cartelera';
-    $logger->info("PASO 2: Iniciando Scraping (Target: {$url})");
+    // Target: Multi-Source
+    $sources = [
+        'https://www.teatromadrid.com/cartelera'
+    ];
+    $logger->info("PASO 2: Iniciando Scraping (Fuentes: " . implode(', ', $sources) . ")");
 
-    // Scraping de 5 páginas
-    $scrapedPlans = $scraper->scrape($url, 5);
+    // Scraping de 3 páginas por fuente (total 6 páginas aprox)
+    $scrapedPlans = $scraper->scrape($sources, 3);
     $totalScraped = count($scrapedPlans);
     $logger->info("Scraping finalizado. Planes recuperados: {$totalScraped}");
     echo "✔ Scraping: {$totalScraped} encontrados.\n";

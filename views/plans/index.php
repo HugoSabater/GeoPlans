@@ -113,15 +113,15 @@
                                         class="form-label small text-muted text-uppercase fw-bold">Categoría</label>
                                     <select name="category" id="category" class="form-select">
                                         <option value="">Todas</option>
-                                        <option value="1" <?= ($filters['category_id'] ?? '') == '1' ? 'selected' : '' ?>>
-                                            Música</option>
-                                        <option value="2" <?= ($filters['category_id'] ?? '') == '2' ? 'selected' : '' ?>>
-                                            Teatro</option>
-                                        <option value="3" <?= ($filters['category_id'] ?? '') == '3' ? 'selected' : '' ?>>
-                                            Cine</option>
                                         <option value="4" <?= ($filters['category_id'] ?? '') == '4' ? 'selected' : '' ?>>
-                                            Gastronomía</option>
+                                            Música</option>
                                         <option value="5" <?= ($filters['category_id'] ?? '') == '5' ? 'selected' : '' ?>>
+                                            Teatro</option>
+                                        <option value="6" <?= ($filters['category_id'] ?? '') == '6' ? 'selected' : '' ?>>
+                                            Cine</option>
+                                        <option value="2" <?= ($filters['category_id'] ?? '') == '2' ? 'selected' : '' ?>>
+                                            Gastronomía</option>
+                                        <option value="7" <?= ($filters['category_id'] ?? '') == '7' ? 'selected' : '' ?>>
                                             Aire Libre</option>
                                     </select>
                                 </div>
@@ -179,17 +179,13 @@
                             <?php
                             // Lógica de color de Badge
                             $catName = $plan['category_name'] ?? 'General';
-                            $badgeClass = 'bg-secondary';
-
-                            if (stripos($catName, 'música') !== false || stripos($catName, 'concierto') !== false) {
-                                $badgeClass = 'bg-info text-dark';
-                            } elseif (stripos($catName, 'teatro') !== false || stripos($catName, 'danza') !== false) {
-                                $badgeClass = 'bg-danger';
-                            } elseif (stripos($catName, 'arte') !== false || stripos($catName, 'exposición') !== false) {
-                                $badgeClass = 'bg-warning text-dark';
-                            } elseif (stripos($catName, 'cine') !== false) {
-                                $badgeClass = 'bg-dark';
-                            }
+                            $badgeClass = match (true) {
+                                stripos($catName, 'Música') !== false || stripos($catName, 'Concierto') !== false => 'bg-primary',
+                                stripos($catName, 'Teatro') !== false || stripos($catName, 'Danza') !== false || stripos($catName, 'Musical') !== false => 'bg-danger',
+                                stripos($catName, 'Arte') !== false || stripos($catName, 'Museo') !== false || stripos($catName, 'Exposición') !== false => 'bg-warning text-dark',
+                                stripos($catName, 'Gastronomía') !== false || stripos($catName, 'Comer') !== false => 'bg-success',
+                                default => 'bg-secondary'
+                            };
                             ?>
 
                             <div class="col">
@@ -198,11 +194,9 @@
                                     <a href="<?= htmlspecialchars($plan['url_source'] ?? '#') ?>" target="_blank"
                                         class="plan-card-img-wrapper d-block position-relative">
                                         <?php $img = !empty($plan['image_url']) ? $plan['image_url'] : "https://picsum.photos/seed/{$plan['id']}/400/250"; ?>
-                                        <img src="<?= htmlspecialchars($img) ?>" 
-                                             class="card-img-top" 
-                                             alt="Imagen del evento"
-                                             style="height: 200px; object-fit: cover;"
-                                             onerror="this.src='https://via.placeholder.com/400x250?text=Sin+Imagen'">
+                                        <img src="<?= htmlspecialchars($img) ?>" class="card-img-top" alt="Imagen del evento"
+                                            style="height: 200px; object-fit: cover;"
+                                            onerror="this.src='https://via.placeholder.com/400x250?text=Sin+Imagen'">
 
                                         <!-- Badge Categoría Dinámica -->
                                         <span class="position-absolute top-0 end-0 badge <?= $badgeClass ?> m-2 shadow-sm">
