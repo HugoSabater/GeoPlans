@@ -1,6 +1,12 @@
-/vendor
-/.idea
-/.vscode
+/vendor/
+/node_modules/
 .env
-/logs/*
+.DS_Store
+*.log
+/logs/*.log
 !/logs/.gitkeep
+/public/test_db.php
+/public/info.php
+.phpunit.result.cache
+.idea/
+.vscode/
