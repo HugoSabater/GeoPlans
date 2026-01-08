@@ -1,5 +1,4 @@
 /vendor/
-/node_modules/
 .env
 .DS_Store
 *.log
@@ -10,3 +9,6 @@
 .phpunit.result.cache
 .idea/
 .vscode/
+/bd_exported/
+*.phar
+.phpdoc/
