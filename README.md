@@ -57,7 +57,7 @@ cp .env.example .env
 ```
 
 ### 4. Base de Datos (Seed Inicial)
-Importar el archivo `database.sql` incluido en la raíz. Este archivo contiene la estructura DDL y un dataset inicial de 50 eventos reales.
+Importar el archivo `database.sql` incluido en la raíz. Este archivo contiene la estructura DDL completa y un dataset semilla dinámico generado mediante scraping en tiempo real. Incluye eventos actuales de Madrid (Teatro, Musicales, etc.) con sus metadatos e imágenes validadas.
 
 ### 5. Arrancar Servidor (Modo Desarrollo)
 ```bash
