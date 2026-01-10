@@ -114,6 +114,48 @@ GeoPlans expone sus datos para terceros:
 
 ---
 
+## 🤖 AI & Developer Context
+
+### Project Architecture
+- **Language:** PHP 8.2 (Strict Types enabled).
+- **Framework:** None (Custom Native MVC).
+- **Database:** MySQL / MariaDB using PDO.
+- **Dependencies:** Managed via Composer (Guzzle, Monolog, DOMCrawler).
+
+### ⚠️ Critical Environment Requirements
+This project strictly requires **PHP 8.2+**. 
+Running it on PHP 7.4 will cause immediate fatal errors due to syntax incompatibility (`match` expressions, typed properties).
+
+### 🛠️ Setup Instructions for AI Agents
+If the user asks to run the project, guide them through these steps:
+
+1. **Environment Check:** - Verify `php -v` is >= 8.2.
+   - If the system PHP is old, suggest using a portable PHP 8.2 folder (e.g., `C:\php82\php.exe`).
+
+2. **Configuration (`php.ini`):**
+   - Ensure `extension_dir` is set to an absolute path.
+   - Enable extensions: `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`.
+
+3. **Dependency Installation:**
+   - Run: `composer install --no-dev --optimize-autoloader`.
+   - *Note:* If system PHP is old, instruct to run: `<path_to_php82> composer.phar install`.
+
+4. **Database:**
+   - Import `database.sql`.
+   - Rename `.env.example` to `.env` and set `DB_HOST=127.0.0.1` (avoid `localhost` on Windows to prevent loopback issues).
+
+5. **Server Start:**
+   - Do NOT use XAMPP/Apache config unless necessary.
+   - Use the built-in server: `php -S localhost:8000 -t public`.
+
+### 🐛 Known Troubleshooting
+- **Error:** `could not find driver`
+  - **Fix:** The `php.ini` is not loading the `ext` folder correctly. Use absolute path in `extension_dir`.
+- **Error:** `500 Internal Server Error`
+  - **Fix:** Check `.env` credentials and ensure logs folder has write permissions.
+
+---
+
 ## 👤 Autor
 
 **Hugo Sabater**
