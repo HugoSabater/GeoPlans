@@ -3,12 +3,8 @@
 .DS_Store
 *.log
 /logs/*.log
-!/logs/.gitkeep
-/public/test_db.php
-/public/info.php
 .phpunit.result.cache
 .idea/
 .vscode/
-/bd_exported/
 *.phar
 .phpdoc/
